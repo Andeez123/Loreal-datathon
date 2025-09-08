@@ -6,6 +6,14 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from scraper.instabot import main
+from dotenv import load_dotenv
+import os
+import pandas as pd
+
+load_dotenv()
+username = os.getenv("insta_username")
+password = os.getenv("insta_password")
 
 app = Flask(__name__)
 
@@ -16,36 +24,13 @@ def check_status():
 @app.route("/api/comment", methods = ['POST'])
 def post_scraper():
     data = request.get_json()
-    options = Options()
-    options.add_argument("--headless=new")
-    options.add_argument("--disable-logging")
-    options.add_argument("--log-level=3")
-
-    # web driver setup
-    service = Service(ChromeDriverManager().install())
-    driver = webdriver.Chrome(service=service, options=options)
 
     url = data["url"]
     print("Redirecting to website...")
-    driver.get(url)
 
-    # wait until comments are visible (adjust xpath if needed)
-    try:
-        WebDriverWait(driver, 10).until(
-            EC.presence_of_all_elements_located((By.XPATH, "//ul[contains(@class, 'x78zum5')]//span"))
-        )
-    except:
-        print("Comments not found")
-        return jsonify({"error": "No comments loaded"})
+    main(username, password, url)
 
-    elements = driver.find_elements(By.XPATH, "//ul[contains(@class, 'x78zum5')]//span")
-    comments = [el.text for el in elements if el.text.strip()]
-
-    print(comments)
-
-    driver.quit()
-
-    return jsonify({"comments": comments})
+    return jsonify(200)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
