@@ -336,19 +336,19 @@ def main(username, password, url):
         print(f"\n Successfully saved {len(comments)} comments to instagram_comments.json!")
         
         # Print comments safely to console
-        print(f"\n Displaying comments:")
-        for i, comment in enumerate(comments, 1):
-            scraper.print_comment_safely(comment, i)
+        # print(f"\n Displaying comments:")
+        # for i, comment in enumerate(comments, 1):
+        #     scraper.print_comment_safely(comment, i)
         
         # Create a summary report
-        print(f"\n=== SCRAPING SUMMARY ===")
-        print(f"Total comments scraped: {len(comments)}")
-        print(f"Comments with usernames: {len([c for c in comments if c.get('username') != 'unknown_user'])}")
-        print(f"Comments with timestamps: {len([c for c in comments if c.get('timestamp')])}")
+        # print(f"\n=== SCRAPING SUMMARY ===")
+        # print(f"Total comments scraped: {len(comments)}")
+        # print(f"Comments with usernames: {len([c for c in comments if c.get('username') != 'unknown_user'])}")
+        # print(f"Comments with timestamps: {len([c for c in comments if c.get('timestamp')])}")
         
         # Show character encoding info
-        unicode_comments = [c for c in comments if any(ord(char) > 127 for char in c.get('comment', ''))]
-        print(f"Comments with Unicode/emoji characters: {len(unicode_comments)}")
+        # unicode_comments = [c for c in comments if any(ord(char) > 127 for char in c.get('comment', ''))]
+        # print(f"Comments with Unicode/emoji characters: {len(unicode_comments)}")
         
         return comments
         
