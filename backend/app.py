@@ -82,13 +82,19 @@ def get_comments():
 def spam_filter():
     post_id = request.args.get("post_id") # args is a multidict, use dict syntax to query
 
-    # comments = fetch_comments(post_id)
+    comments = fetch_comments(post_id)
+    results = []
+    comment_list = []
 
-    # for comment in comments:
-    #     print(is_spam(comment['comment']))
-    print(post_id)
-    print(is_spam(post_id))
-    return jsonify(200)
+    # apply filter to data from database
+    filters = ["reply", "replies", "translation", "like", "meta", "instagram"]
+    for comment in comments:
+        text = comment['comment'].lower()
+        if not any(f in text for f in filters):
+            comment_list.append(comment['comment'])
+    
+    print(comment_list)
+    return jsonify(comment_list, 200)
 
 
 if __name__ == '__main__':
