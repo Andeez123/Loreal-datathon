@@ -155,14 +155,14 @@ class InstagramCommentScraper:
                 load_more_button.click()
                 time.sleep(2)
                 
-                # Count current comments
+                # Count current comments using the same selector as scraping
                 current_comments = len(self.driver.find_elements(
-                    By.XPATH, "//div[@data-testid='comment']"
+                    By.XPATH, "//span[contains(@class, 'x1lliihq')]"
                 ))
                 
                 if current_comments > comments_loaded:
                     comments_loaded = current_comments
-                    self.logger.info(f"Loaded {comments_loaded} comments")
+                    self.logger.info(f"Loaded {comments_loaded} potential comment elements")
                 else:
                     break
                     
@@ -175,7 +175,7 @@ class InstagramCommentScraper:
     
     def scrape_comments(self, post_url, max_comments=100):
         """
-        Scrape comments from an Instagram post
+        Scrape comments from an Instagram post with UI element filtering
         
         Args:
             post_url (str): URL of the Instagram post
@@ -190,76 +190,86 @@ class InstagramCommentScraper:
             # Load more comments if needed
             self.load_more_comments(max_comments)
             
-            # Multiple selectors to find comment elements (Instagram changes these frequently)
-            comment_selectors = [
-                # "//div[@data-testid='comment']",
-                # "//article//div[contains(@class, 'C4VMK')]",  # Alternative comment container
-                # "//ul[@class='Mr508']//li",  # Comment list items
-                # "//div[contains(@class, 'ZyFrc')]"  # Another common comment wrapper
-                "//span[contains(@class, 'x1lliihq')]"
-            ]
+            # Use the selector you specified
+            comment_selector = "//span[contains(@class, 'x1lliihq')]"
             
             comment_elements = []
-            for selector in comment_selectors:
-                try:
-                    elements = self.driver.find_elements(By.XPATH, selector)
-                    if elements:
-                        comment_elements = elements
-                        self.logger.info(f"Found comments using selector: {selector}")
-                        break
-                except:
-                    continue
+            try:
+                comment_elements = self.driver.find_elements(By.XPATH, comment_selector)
+                self.logger.info(f"Found {len(comment_elements)} potential comment elements")
+            except Exception as e:
+                self.logger.error(f"Failed to find comment elements: {str(e)}")
+                return []
             
             if not comment_elements:
-                # Fallback: try to find spans with comment text
-                comment_elements = self.driver.find_elements(
-                    By.XPATH, "//span[@dir='auto' and string-length(text()) > 5]"
-                )
-                self.logger.info("Using fallback span selector")
+                self.logger.warning("No comment elements found")
+                return []
+            
+            # Filter out non-comment texts
+            ui_elements = {
+                "reply", "see translation", "translate", "view replies", 
+                "view all replies", "hide replies", "like", "liked",
+                "show more", "show less", "view more comments",
+                "load more comments", "heart", "follow", "following",
+                "ago", "min", "hour", "day", "week", "month", "year",
+                "h", "m", "d", "w", "y"  # Time abbreviations
+            }
             
             comments = []
             
-            for i, comment_element in enumerate(comment_elements[:max_comments]):
+            for i, comment_element in enumerate(comment_elements):
                 try:
+                    # Extract comment text directly from the span element
+                    comment_text = comment_element.text.strip()
                     
-                    # Multiple strategies to extract comment text
-                    comment_text = ""
-                    text_selectors = [
-                        "."
-                    ]
+                    # Skip if text is empty or too short
+                    if not comment_text or len(comment_text) <= 2:
+                        self.logger.debug(f"Skipped element {i+1}: too short or empty")
+                        continue
                     
-                    for text_selector in text_selectors:
-                        try:
-                            if text_selector == ".":
-                                comment_text = comment_element.text.strip()
-                            else:
-                                comment_text_element = comment_element.find_element(By.XPATH,  "//span[contains(@class, 'x1lliihq')]")
-                                comment_text = comment_text_element.text.strip()
-                            
-                            # Clean up the comment text (remove username if it's at the beginning)
-                            if username and comment_text.startswith(username):
-                                comment_text = comment_text[len(username):].strip()
-                            
-                            if comment_text and len(comment_text) > 2:
-                                break
-                        except:
+                    # Convert to lowercase for checking
+                    comment_lower = comment_text.lower()
+                    
+                    # Skip UI elements and common non-comment text patterns
+                    if comment_lower in ui_elements:
+                        self.logger.debug(f"Skipped UI element {i+1}: '{comment_text}'")
+                        continue
+                    
+                    # Skip single words that are likely UI elements
+                    if len(comment_text.split()) == 1 and len(comment_text) < 10:
+                        self.logger.debug(f"Skipped single word {i+1}: '{comment_text}'")
+                        continue
+                    
+                    # Skip if it's just a time indicator (like "2h", "3 days ago", etc.)
+                    if any(time_word in comment_lower for time_word in ["ago", "hour", "min", "day", "week", "month", "year"]):
+                        if len(comment_text.split()) <= 3:  # Short time phrases
+                            self.logger.debug(f"Skipped time indicator {i+1}: '{comment_text}'")
                             continue
                     
-                    # Only add comment if we have at least some text
-                    if comment_text and len(comment_text) > 2:
-                        comment_data = {
-                            "comment": comment_text,
-                            "raw_html": comment_element.get_attribute("outerHTML")[:500]  # First 500 chars for debugging
-                        }
-                        
-                        comments.append(comment_data)
-                        self.logger.debug(f"Extracted comment: {username}: {comment_text[:50]}...")
+                    # Skip if it matches common button patterns
+                    if comment_lower.startswith(("view", "show", "hide", "load", "see")):
+                        if len(comment_text.split()) <= 4:  # Short UI commands
+                            self.logger.debug(f"Skipped UI command {i+1}: '{comment_text}'")
+                            continue
+                    
+                    # If we've reached max_comments, stop
+                    if len(comments) >= max_comments:
+                        break
+                    
+                    # This looks like a real comment - add it
+                    comment_data = {
+                        "comment": comment_text,
+                        "raw_html": comment_element.get_attribute("outerHTML")
+                    }
+                    
+                    comments.append(comment_data)
+                    self.logger.debug(f"Extracted comment {len(comments)}: {comment_text[:50]}...")
                     
                 except Exception as e:
-                    self.logger.warning(f"Error extracting comment {i+1}: {str(e)}")
+                    self.logger.warning(f"Error extracting element {i+1}: {str(e)}")
                     continue
             
-            self.logger.info(f"Successfully scraped {len(comments)} comments")
+            self.logger.info(f"Successfully scraped {len(comments)} actual comments (filtered out UI elements)")
             return comments
             
         except Exception as e:
@@ -291,7 +301,6 @@ class InstagramCommentScraper:
         """
         try:
             print(f"\n--- Comment {index} ---")
-            print(f"Username: {comment.get('username', 'unknown_user')}")
             
             # Handle Unicode characters in comment text
             comment_text = comment.get('comment', '')
@@ -303,7 +312,10 @@ class InstagramCommentScraper:
                 print(f"Comment: {safe_text}")
                 print(f"Comment (raw): {repr(comment_text)}")
             
-            print(f"Timestamp: {comment.get('timestamp', '')}")
+            # Optionally show first 200 chars of raw HTML for debugging
+            raw_html = comment.get('raw_html', '')
+            if raw_html:
+                print(f"Raw HTML (first 200 chars): {raw_html[:200]}...")
             
         except Exception as e:
             print(f"Error printing comment {index}: {str(e)}")
@@ -333,22 +345,15 @@ def main(username, password, url):
         
         # Save to JSON file first (most important - this handles Unicode perfectly)
         scraper.save_comments_to_json(comments)
-        print(f"\n Successfully saved {len(comments)} comments to instagram_comments.json!")
-        
-        # Print comments safely to console
-        # print(f"\n Displaying comments:")
-        # for i, comment in enumerate(comments, 1):
-        #     scraper.print_comment_safely(comment, i)
+        print(f"\nSuccessfully saved {len(comments)} comments to instagram_comments.json!")
         
         # Create a summary report
-        # print(f"\n=== SCRAPING SUMMARY ===")
-        # print(f"Total comments scraped: {len(comments)}")
-        # print(f"Comments with usernames: {len([c for c in comments if c.get('username') != 'unknown_user'])}")
-        # print(f"Comments with timestamps: {len([c for c in comments if c.get('timestamp')])}")
+        print(f"\n=== SCRAPING SUMMARY ===")
+        print(f"Total comments scraped: {len(comments)}")
         
         # Show character encoding info
-        # unicode_comments = [c for c in comments if any(ord(char) > 127 for char in c.get('comment', ''))]
-        # print(f"Comments with Unicode/emoji characters: {len(unicode_comments)}")
+        unicode_comments = [c for c in comments if any(ord(char) > 127 for char in c.get('comment', ''))]
+        print(f"Comments with Unicode/emoji characters: {len(unicode_comments)}")
         
         return comments
         
@@ -372,12 +377,11 @@ def main(username, password, url):
         except Exception as close_error:
             print(f"Warning: Error closing browser: {str(close_error)}")
 
-
 # Example usage (uncomment to test):
 # if __name__ == "__main__":
 #     # Replace with your actual credentials and post URL
-#     username = "andeeezzz_nutz",
-#     password = "BeyondExcellence",
+#     username = "your_username"
+#     password = "your_password"
 #     post_url = "https://www.instagram.com/p/DOWPwzsjJBy/"
     
 #     results = main(username, password, post_url)

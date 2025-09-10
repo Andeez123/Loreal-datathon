@@ -9,6 +9,7 @@ from flask_migrate import Migrate
 import json
 import json
 import sys
+from spam_filtering.spam_filter import *
 sys.stdout.reconfigure(encoding="utf-8")
 
 load_dotenv()
@@ -62,18 +63,32 @@ def post_scraper():
 
     return jsonify(200)
 
-@app.route("/api/getcomment", methods = ['GET'])
-def get_comments():
-    post_id = request.args.get("post_id") # args is a multidict, use dict syntax to query
-
+def fetch_comments(post_id):
     if not post_id:
         return jsonify({"error: post id is required"}, 400)
     
     results = postComment.query.filter_by(post_id=post_id).all()
-    comments = [{"id": r.id, "post_id": r.post_id, "comment": r.comment} for r in results]
+    return [{"id": r.id, "post_id": r.post_id, "comment": r.comment} for r in results]
+
+@app.route("/api/getcomment", methods = ['GET'])
+def get_comments():
+    post_id = request.args.get("post_id") # args is a multidict, use dict syntax to query
+
+    comments = fetch_comments(post_id)
 
     return jsonify(comments, 200)
 
+@app.route("/api/filter", methods = ["POST"])
+def spam_filter():
+    post_id = request.args.get("post_id") # args is a multidict, use dict syntax to query
+
+    # comments = fetch_comments(post_id)
+
+    # for comment in comments:
+    #     print(is_spam(comment['comment']))
+    print(post_id)
+    print(is_spam(post_id))
+    return jsonify(200)
 
 
 if __name__ == '__main__':
