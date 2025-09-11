@@ -10,28 +10,28 @@ This project is a sentiment analysis platform that extracts comments from Instag
 - Postman → API testing and validation
 
 ## Features
-🔎 Scrape Instagram comments with Selenium
-🗄️ Store comments & results in a local SQLite database
-🤖 Run sentiment analysis (positive, neutral, negative) using Hugging Face pre-trained models
-🛑 Detect spammy comments with heuristic + model-based filters
-🌐 Expose REST API endpoints (Flask) to:
-  Fetch stored comments
-  Analyze sentiment of comments
-  Return aggregated sentiment for an Instagram post
+- Scrape Instagram comments with Selenium
+- Store comments & results in a local SQLite database
+- Run sentiment analysis (positive, neutral, negative) using Hugging Face pre-trained models
+- Detect spammy comments with heuristic + model-based filters
+- Expose REST API endpoints (Flask) to:
+  - Fetch stored comments
+  - Analyze sentiment of comments
+  - Return aggregated sentiment for an Instagram post
 
 ## Tech Stack
-Backend: Flask
-Database: SQLite
-ML/NLP: Hugging Face Transformers
-Scraping: Selenium
-API Testing: Postman
+- Backend: Flask
+- Database: SQLite
+- ML/NLP: Hugging Face Transformers
+- Scraping: Selenium
+- API Testing: Postman
 
 ## API Endpoints
 
 ## Setup Instructions
 
 ## Future Plans
-🌐 Chrome Extension: Analyze comments directly while browsing Instagram.
-🗄️ Production Database: Move from SQLite → PostgreSQL/MySQL for scalability.
-📊 Instagram Business API: Fetch comments directly via API instead of Selenium scraping.
-📈 Advanced Analytics: Sentiment trends over time, spam clustering, keyword insights.
+- Chrome Extension: Analyze comments directly while browsing Instagram.
+- Production Database: Move from SQLite → PostgreSQL/MySQL for scalability.
+- Instagram Business API: Fetch comments directly via API instead of Selenium scraping.
+
