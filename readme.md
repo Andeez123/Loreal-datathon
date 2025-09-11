@@ -3,7 +3,7 @@
 This project is a sentiment analysis platform that extracts comments from Instagram posts and analyzes them using pre-trained NLP models from Hugging Face. It provides insights into the general sentiment (positive, neutral, negative) of an Instagram post.
 
 ## Built with:
-Selenium → to scrape Instagram comments
+# Selenium → to scrape Instagram comments
 Flask → backend framework for API endpoints
 SQLite → lightweight database for storing comments & results
 Hugging Face Transformers → pre-trained models for sentiment analysis & spam filtering
