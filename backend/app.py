@@ -34,6 +34,11 @@ class Sentiment(db.Model):
     label = db.Column(db.String(100))
     confidence = db.Column(db.Float, nullable = False)
 
+class postSentiment(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    post_id = db.Column(db.String(120), nullable = False)
+    label = db.Column(db.String(100))
+
 
 @app.route("/api/health", methods = ['GET'])
 def check_status():
@@ -87,6 +92,11 @@ def spam_filter():
     results = []
     comment_list = []
 
+    general_sentiment = ""
+    negative = 0
+    neutral = 0
+    positive = 0
+
     # apply filter to data from database
     filters = ["reply", "replies", "translation", "like", "meta", "instagram"]
     for comment in comments:
@@ -122,7 +132,32 @@ def spam_filter():
             "confidence": confidence
         })
 
-    return jsonify(results, 200)
+    for result in results:
+        label = result['label']
+        if label == "negative":
+            negative += 1
+        elif label == "neutral":
+            neutral += 1
+        elif label == "positive":
+            positive += 1
+
+    if (positive > negative) and (positive > neutral):
+        print(f"positive: {positive}")
+        print(f"neutral: {neutral}")
+        print(f"negative: {negative}")
+        general_sentiment = "positive"
+    elif (negative > positive) and (negative > neutral):
+        print(f"positive: {positive}")
+        print(f"neutral: {neutral}")
+        print(f"negative: {negative}")
+        general_sentiment = "negative"
+    else:
+        print(f"positive: {positive}")
+        print(f"neutral: {neutral}")
+        print(f"negative: {negative}")
+        general_sentiment = "neutral"
+
+    return jsonify(general_sentiment, 200)
 
 
 if __name__ == '__main__':
