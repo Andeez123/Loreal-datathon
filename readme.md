@@ -1,4 +1,4 @@
-📊 ## Instagram Comment Sentiment Analysis Platform
+## Instagram Comment Sentiment Analysis Platform
 
 This project is a sentiment analysis platform that extracts comments from Instagram posts and analyzes them using pre-trained NLP models from Hugging Face. It provides insights into the general sentiment (positive, neutral, negative) of an Instagram post.
 
