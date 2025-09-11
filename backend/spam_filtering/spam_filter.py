@@ -5,6 +5,16 @@ spam_model = pipeline("text-classification",
                       model="unitary/toxic-bert",
                       framework="pt")
 
+sentiment_model = pipeline("sentiment-analysis", 
+                           model="cardiffnlp/twitter-roberta-base-sentiment",
+                           framework="pt")
+
+label_map = {
+    "LABEL_0": "negative",
+    "LABEL_1": "neutral", 
+    "LABEL_2": "positive"
+}
+
 def is_spam(comment: str) -> tuple[bool, float]:
     """
     Returns (is_spam, confidence) using enhanced pattern matching

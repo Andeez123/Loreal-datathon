@@ -63,6 +63,7 @@ def post_scraper():
 
     return jsonify(200)
 
+# helper function to get comments and return as list 
 def fetch_comments(post_id):
     if not post_id:
         return jsonify({"error: post id is required"}, 400)
@@ -93,8 +94,35 @@ def spam_filter():
         if not any(f in text for f in filters):
             comment_list.append(comment['comment'])
     
-    print(comment_list)
-    return jsonify(comment_list, 200)
+    for comment in comment_list:
+        spam_detected, spam_confidence = is_spam(comment)
+        if spam_detected:
+            results.append({
+                "comment": comment,
+                "label": "spam",
+                "confidence": spam_confidence
+            })
+            continue
+        pred = sentiment_model(comment)[0]
+        raw_label = pred["label"]  # This will be "LABEL_0", "LABEL_1", or "LABEL_2"
+        confidence = float(pred["score"])
+        
+        # Map to readable label
+        mapped_label = label_map.get(raw_label, "neutral")
+
+        # Apply a neutral threshold: if confidence is below 0.6, label as neutral
+        if confidence < 0.6:  # uncertain prediction
+            final_label = "neutral"
+        else:
+            final_label = mapped_label
+
+        results.append({
+            "comment": comment,
+            "label": final_label,
+            "confidence": confidence
+        })
+
+    return jsonify(results, 200)
 
 
 if __name__ == '__main__':
