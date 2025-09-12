@@ -27,6 +27,14 @@ This project is a sentiment analysis platform that extracts comments from Instag
 - API Testing: Postman
 
 ## API Endpoints
+- /api/health
+  - used to check status of backend server
+- /api/comment (HTTP POST)
+  - accepts an Instagram link, scrapes comments and saves to local database
+- /api/getcomment (HTTP GET)
+  - accepts an Instagram link, and returns comments related to the post
+- /api/filter (HTTP GET)
+  - accepts an Instagram link, passes the comments data to local NLP models and returns a generalised sentiment of the Instagram post
 
 ## Setup Instructions
 
