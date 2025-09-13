@@ -6,6 +6,7 @@ import os
 import pandas as pd
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_cors import CORS
 import json
 import json
 import sys
@@ -22,6 +23,7 @@ app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///app.db"
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+CORS(app)
 
 # define models
 class postComment(db.Model):
@@ -205,7 +207,7 @@ def spam_filter():
     elif (negative > positive):
         general_sentiment = "negative"
     
-    return jsonify(general_sentiment, 200)
+    return jsonify({"general_sentiment": general_sentiment}), 200
 
 
 if __name__ == '__main__':
