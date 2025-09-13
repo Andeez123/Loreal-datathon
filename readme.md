@@ -37,6 +37,24 @@ This project is a sentiment analysis platform that extracts comments from Instag
   - accepts an Instagram link, passes the comments data to local NLP models and returns a generalised sentiment of the Instagram post
 
 ## Setup Instructions
+1. Clone the repository to your local machine
+2. In the project ROOT directory, create a .env file, and insert your Instagram credentials as such:
+  insta_username = "your username"
+  insta_password = "your password"
+3. If you prefer, create a virtual env and download the required packages using:
+  ```
+  pip install -r requirements.txt
+  ```
+4. Once the required dependencies are installed, run the backend by doing:
+  ```
+  cd backend
+  python app.py
+  ```
+5. Once the backend is running, the frontend can be run using:
+  ```
+  cd fontend
+  npm run dev
+  ```
 
 ## Future Plans
 - Chrome Extension: Analyze comments directly while browsing Instagram.
