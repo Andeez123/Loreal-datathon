@@ -45,11 +45,8 @@ class postSentiment(db.Model):
 def check_status():
     return jsonify({"status": "running", "message": "backend is running"})
 
-@app.route("/api/comment", methods = ['POST'])
-def post_scraper():
-    data = request.get_json()
-
-    url = data["url"]
+# helper function which calls web scraper bot
+def insta_scraper(url):
     print("Redirecting to website...")
 
     main(username, password, url)
@@ -67,6 +64,11 @@ def post_scraper():
         db.session.add(comment_entry)
         db.session.commit()
 
+@app.route("/api/comment", methods = ['POST'])
+def post_scraper():
+    data = request.get_json()
+    url = data["url"]
+    insta_scraper(url=url)
     return jsonify(200)
 
 # helper function to get comments and return as list 
@@ -92,6 +94,8 @@ def get_comments():
 def spam_filter():
     post_id = request.args.get("post_id") # args is a multidict, use dict syntax to query
     
+    insta_scraper(post_id)
+
     comments = fetch_comments(post_id)
 
     if comments == []:
