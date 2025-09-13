@@ -39,9 +39,11 @@ This project is a sentiment analysis platform that extracts comments from Instag
 ## Setup Instructions
 1. Clone the repository to your local machine
 2. In the project ROOT directory, create a .env file, and insert your Instagram credentials as such:
+  ```
   insta_username = "your username"
   insta_password = "your password"
-3. If you prefer, create a virtual env and download the required packages using:
+  ```
+4. If you prefer, create a virtual env and download the required packages using:
   ```
   pip install -r requirements.txt
   ```
